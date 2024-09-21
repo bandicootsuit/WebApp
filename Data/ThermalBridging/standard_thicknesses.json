@@ -1,0 +1,18 @@
+{
+    "plasterboard": [12.5, 15],
+    "timber_frame": [100],
+    "steel_frame": [50, 100],
+    "metal_frame": [50],
+    "insulation_mineral_wool": [100],
+    "insulation_fiberglass": [100],
+    "rigid_foam_insulation": [50],
+    "brick_veneer": [100],
+    "cement_render": [10],
+    "weather_resistant_panel": [12],
+    "rock_wool_insulation": [100],
+    "fiberglass_batt_insulation": [100],
+    "spray_foam_insulation": [100],
+    "external_timber_cladding": [100],
+    "external_brick_leaf": [100],
+    "air_cavity": [50]
+}

@@ -1,0 +1,38 @@
+{
+    "k_values": {
+        "Concrete block": 1.7,
+        "Solid brick": 0.72,
+        "Internal plaster": 0.16,
+        "Cement render": 0.16,
+        "Internal plasterboard": 0.16,
+        "Timber studs": 0.12,
+        "OSB sheathing": 0.14,
+        "Rigid foam insulation": 0.04,
+        "Mineral wool insulation": 0.04,
+        "External timber cladding": 0.12,
+        "External brick slip": 0.72,
+        "External render": 0.16,
+        "External brick leaf": 0.72,
+        "Inner block leaf": 1.7,
+        "External brick slip or render": 0.16,
+        "plasterboard": 0.25,
+        "timber_frame": 0.13,
+        "metal_studs": 0.15,
+        "insulation_mineral_wool": 0.04,
+        "insulation_fiberglass": 0.04,
+        "rigid_foam": 0.03,
+        "brick_veneer": 0.7,
+        "cement_render": 0.7,
+        "weather_resistant_panel": 0.7,
+        "external_timber_cladding": 0.2,
+        "rock_wool_insulation": 0.04,
+        "fiberglass_batt_insulation": 0.04,
+        "spray_foam_insulation": 0.03,
+        "external_brick_leaf": 0.7
+    },
+    "R_values": {
+        "Air cavity": 0.18,
+        "Ventilated air gap": 0.25,
+        "Vapour barrier": 0.10
+    }
+}

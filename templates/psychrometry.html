@@ -1,0 +1,136 @@
+<!-- templates/psychrometry.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Psychrometry Practice - Psychrometry Questions</title>
+    <!-- Bootstrap CSS for responsiveness -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Custom Styling */
+        body {
+            background-color: #f8f9fa;
+        }
+        #chart-container {
+            text-align: center;
+        }
+        #chart {
+            max-width: 100%;
+            height: auto;
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 10px;
+            background-color: #fff;
+        }
+        #spinner {
+            display: none;
+        }
+    </style>
+</head>
+<body class="container py-5">
+    <h1 class="mb-4 text-center">Psychrometry Questions</h1>
+    
+    <div class="mb-3 text-center">
+        <button id="generate-question" class="btn btn-primary me-2">Generate Question</button>
+        <button id="show-solution" class="btn btn-success" disabled>Show Solution</button>
+        <a href="/" class="btn btn-secondary">Back to Main Menu</a>
+    </div>
+    
+    <div id="question" class="mb-4">
+        <!-- Question will be displayed here -->
+    </div>
+    
+    <div id="solution" class="mb-4">
+        <!-- Loading Spinner -->
+        <div id="spinner" class="text-center my-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Generating chart...</span>
+            </div>
+            <p>Generating chart...</p>
+        </div>
+        <!-- Chart will be displayed here -->
+        <div id="chart-container">
+            <img id="chart" src="" alt="Psychrometric Chart">
+        </div>
+    </div>
+    
+    <!-- jQuery and Bootstrap JS for interactivity -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        let currentPoints = {};
+
+        $(document).ready(function(){
+            $('#generate-question').click(function(){
+                // Disable buttons during request
+                $('#generate-question').prop('disabled', true);
+                $('#show-solution').prop('disabled', true);
+                $('#spinner').hide();
+                $('#chart').attr('src', '');
+                
+                $.ajax({
+                    url: '/psychrometry/generate_question',
+                    method: 'GET',
+                    success: function(data){
+                        if(data.error){
+                            alert(data.error);
+                            $('#generate-question').prop('disabled', false);
+                            return;
+                        }
+
+                        const point1 = data.points.point1;
+                        const point2 = data.points.point2;
+                        currentPoints = {
+                            point1: point1,
+                            point2: point2
+                        };
+                        $('#question').html(
+                            `<h5>${data.prompt}</h5>
+                             <ul>
+                                <li><strong>Point 1:</strong> Temperature = ${point1.temperature}°C, Relative Humidity = ${point1.relative_humidity}%</li>
+                                <li><strong>Point 2:</strong> Temperature = ${point2.temperature}°C, Relative Humidity = ${point2.relative_humidity}%</li>
+                             </ul>`
+                        );
+                        $('#show-solution').prop('disabled', false); // Enable the solution button
+                        $('#generate-question').prop('disabled', false); // Re-enable the generate button
+                    },
+                    error: function(){
+                        alert('Error generating question. Please try again.');
+                        $('#generate-question').prop('disabled', false); // Re-enable the generate button
+                    }
+                });
+            });
+            
+            $('#show-solution').click(function(){
+                if (!currentPoints.point1 || !currentPoints.point2) {
+                    alert('Please generate a question first.');
+                    return;
+                }
+
+                // Show spinner and hide previous chart
+                $('#spinner').show();
+                $('#chart').attr('src', '');
+
+                $.ajax({
+                    url: '/psychrometry/show_solution',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(currentPoints),
+                    success: function(data){
+                        $('#spinner').hide();
+                        if(data.chart_url){
+                            $('#chart').attr('src', data.chart_url);
+                        } else if(data.error){
+                            alert(data.error);
+                        }
+                    },
+                    error: function(){
+                        $('#spinner').hide();
+                        alert('Error generating solution. Please try again.');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

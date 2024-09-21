@@ -1,0 +1,21 @@
+{
+    "k_values": {
+        "plasterboard": 0.25,
+        "timber_frame": 0.13,
+        "metal_frame": 0.15,
+        "insulation_mineral_wool": 0.04,
+        "insulation_fiberglass": 0.04,
+        "rigid_foam_insulation": 0.03,
+        "brick_veneer": 0.7,
+        "cement_render": 0.7,
+        "weather_resistant_panel": 0.7,
+        "rock_wool_insulation": 0.04,
+        "fiberglass_batt_insulation": 0.04,
+        "spray_foam_insulation": 0.03,
+        "external_timber_cladding": 0.2,
+        "external_brick_leaf": 0.7
+    },
+    "R_values": {
+        "air_cavity": 0.18
+    }
+}

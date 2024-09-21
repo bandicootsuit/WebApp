@@ -1,0 +1,134 @@
+{
+    "3": [
+        {
+            "name": "Timber Frame with Insulation and Cladding",
+            "layers": [
+                {
+                    "material": "plasterboard"
+                },
+                {
+                    "material": "Timber Frame & Insulation",
+                    "percentage_range": [5, 15],
+                    "insulation": {
+                        "material": "insulation_mineral_wool"
+                    }
+                },
+                {
+                    "material": "external_timber_cladding"
+                }
+            ]
+        },
+        {
+            "name": "Metal Frame Wall with Insulation and Drywall",
+            "layers": [
+                {
+                    "material": "plasterboard"
+                },
+                {
+                    "material": "Metal Frame & Insulation",
+                    "percentage_range": [5, 15],
+                    "insulation": {
+                        "material": "insulation_fiberglass"
+                    }
+                },
+                {
+                    "material": "cement_render"
+                }
+            ]
+        }
+    ],
+    "4": [
+        {
+            "name": "Timber Frame with Rigid Insulation and External Brick",
+            "layers": [
+                {
+                    "material": "plasterboard"
+                },
+                {
+                    "material": "Timber Frame & Insulation",
+                    "percentage_range": [5, 15],
+                    "insulation": {
+                        "material": "insulation_mineral_wool"
+                    }
+                },
+                {
+                    "material": "rigid_foam_insulation"
+                },
+                {
+                    "material": "brick_veneer"
+                }
+            ]
+        },
+        {
+            "name": "Steel Frame Wall with Cavity Insulation",
+            "layers": [
+                {
+                    "material": "plasterboard"
+                },
+                {
+                    "material": "Steel Frame & Insulation",
+                    "percentage_range": [5, 15],
+                    "insulation": {
+                        "material": "spray_foam_insulation"
+                    }
+                },
+                {
+                    "material": "weather_resistant_panel"
+                },
+                {
+                    "material": "brick_veneer"
+                }
+            ]
+        }
+    ],
+    "5": [
+        {
+            "name": "Timber Frame with Cavity Insulation and Rigid Foam",
+            "layers": [
+                {
+                    "material": "plasterboard"
+                },
+                {
+                    "material": "Timber Frame & Insulation",
+                    "percentage_range": [5, 15],
+                    "insulation": {
+                        "material": "rock_wool_insulation"
+                    }
+                },
+                {
+                    "material": "rigid_foam_insulation"
+                },
+                {
+                    "material": "air_cavity"
+                },
+                {
+                    "material": "external_timber_cladding"
+                }
+            ]
+        },
+        {
+            "name": "Hybrid Wall with Structural Steel, Insulation, and Brick",
+            "layers": [
+                {
+                    "material": "plasterboard"
+                },
+                {
+                    "material": "Steel Frame & Insulation",
+                    "percentage_range": [5, 15],
+                    "insulation": {
+                        "material": "fiberglass_batt_insulation"
+                    }
+                },
+                {
+                    "material": "rigid_foam_insulation"
+                },
+                {
+                    "material": "air_cavity"
+                },
+                {
+                    "material": "brick_veneer"
+                }
+            ]
+        }
+    ]
+}

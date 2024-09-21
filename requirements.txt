@@ -1,0 +1,6 @@
+Flask
+matplotlib
+numpy
+psychrolib
+scipy
+random

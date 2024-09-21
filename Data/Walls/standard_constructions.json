@@ -1,0 +1,116 @@
+{
+    "1": [
+        {
+            "name": "Concrete Block Wall",
+            "layers": [
+                {"material": "Concrete block"}
+            ]
+        },
+        {
+            "name": "Brick Wall",
+            "layers": [
+                {"material": "Solid brick"}
+            ]
+        }
+    ],
+    "2": [
+        {
+            "name": "Brick Wall with Plaster Finish",
+            "layers": [
+                {"material": "Solid brick"},
+                {"material": "Internal plaster"}
+            ]
+        },
+        {
+            "name": "Concrete Block Wall with External Render",
+            "layers": [
+                {"material": "Concrete block"},
+                {"material": "Cement render"}
+            ]
+        }
+    ],
+    "3": [
+        {
+            "name": "Cavity Wall with Brick and Plaster",
+            "layers": [
+                {"material": "External brick leaf"},
+                {"material": "Air cavity"},
+                {"material": "Internal plaster"}
+            ]
+        },
+        {
+            "name": "Timber Frame Wall with Internal Lining",
+            "layers": [
+                {"material": "Internal plasterboard"},
+                {"material": "Timber studs"},
+                {"material": "OSB sheathing"}
+            ]
+        }
+    ],
+    "4": [
+        {
+            "name": "Cavity Wall with Insulation",
+            "layers": [
+                {"material": "External brick leaf"},
+                {"material": "Rigid foam insulation"},
+                {"material": "Inner block leaf"},
+                {"material": "Internal plaster"}
+            ]
+        },
+        {
+            "name": "Timber Frame Wall with External Cladding",
+            "layers": [
+                {"material": "Internal plasterboard"},
+                {"material": "Timber studs"},
+                {"material": "Ventilated air gap"},
+                {"material": "External timber cladding"}
+            ]
+        }
+    ],
+    "5": [
+        {
+            "name": "Insulated Cavity Wall with Render",
+            "layers": [
+                {"material": "Internal plaster"},
+                {"material": "Inner block leaf"},
+                {"material": "Rigid foam insulation"},
+                {"material": "External brick leaf"},
+                {"material": "External render"}
+            ]
+        },
+        {
+            "name": "Timber Frame Wall with External Insulation",
+            "layers": [
+                {"material": "Internal plasterboard"},
+                {"material": "Timber studs"},
+                {"material": "OSB sheathing"},
+                {"material": "Rigid foam insulation"},
+                {"material": "External brick slip or render"}
+            ]
+        }
+    ],
+    "6": [
+        {
+            "name": "High-Performance Cavity Wall with Insulation and Vapour Barrier",
+            "layers": [
+                {"material": "Internal plaster"},
+                {"material": "Vapour barrier"},
+                {"material": "Inner block leaf"},
+                {"material": "Rigid foam insulation"},
+                {"material": "External brick leaf"},
+                {"material": "External render"}
+            ]
+        },
+        {
+            "name": "Timber Frame with External Insulation and Cladding",
+            "layers": [
+                {"material": "Internal plasterboard"},
+                {"material": "Vapour barrier"},
+                {"material": "Timber studs"},
+                {"material": "OSB sheathing"},
+                {"material": "Rigid foam insulation"},
+                {"material": "External timber cladding"}
+            ]
+        }
+    ]
+}

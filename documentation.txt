@@ -1,0 +1,481 @@
+Thermal Bridging Heat Loss Calculator Documentation
+Table of Contents
+
+    Overview
+    Directory Structure
+    Installation
+    Usage Guide
+    Code Structure
+    Data Management
+    Troubleshooting
+    Future Enhancements
+    Contribution Guidelines
+    Contact Information
+
+1. Overview
+
+The Thermal Bridging Heat Loss Calculator is a web-based application designed to help users calculate heat loss through walls incorporating thermal bridging. The tool allows users to generate customized questions based on the number of wall layers, visualize thermal resistance through detailed charts, and access essential calculation formulas via an interactive modal.
+
+Key Features:
+
+    Dynamic Question Generation: Create heat loss calculation questions with varying wall layers (3 to 5).
+    Detailed Thermal Resistance Charts: Visualize thermal resistance of each wall layer, including multi-layered components.
+    Formulae Access: Quickly view calculation formulas through an intuitive modal displaying an image.
+    User-Friendly Interface: Responsive design ensures accessibility across devices.
+    Error Handling: Robust mechanisms to handle and log errors gracefully.
+
+2. Directory Structure
+
+Organizing your project files systematically is crucial for maintainability and scalability. Below is the recommended directory structure for the Thermal Bridging Heat Loss Calculator:
+
+arduino
+
+project_root/
+│
+├── main.py
+├── requirements.txt
+├── README.md
+├── Data/
+│   └── ThermalBridging/
+│       ├── standard_constructions.json
+│       ├── standard_thicknesses.json
+│       └── thermal_properties.json
+├── question_types/
+│   └── thermal_bridging.py
+├── templates/
+│   ├── index.html
+│   └── thermal_bridging.html
+├── static/
+│   └── images/
+│       └── formula_sheet.png
+└── tests/
+    └── test_thermal_bridging.py
+
+Description of Key Directories and Files:
+
+    main.py: The primary Flask application file containing route definitions and server configurations.
+    requirements.txt: Lists all Python dependencies required to run the application.
+    README.md: Contains the documentation (this file) detailing the application's features, setup, and usage.
+    Data/ThermalBridging/: Stores JSON files defining wall constructions, material thicknesses, and thermal properties.
+    question_types/thermal_bridging.py: Contains the logic for generating thermal bridging questions and calculating heat loss.
+    templates/: Holds HTML templates rendered by Flask.
+        index.html: The main menu or landing page.
+        thermal_bridging.html: Interface for the Thermal Bridging feature.
+    static/images/: Stores static assets like images.
+        formula_sheet.png: Image of calculation formulas displayed in the modal.
+    tests/test_thermal_bridging.py: Contains unit tests for the Thermal Bridging calculations.
+
+3. Installation
+
+To set up the Thermal Bridging Heat Loss Calculator on your local machine, follow these steps:
+a. Prerequisites
+
+    Python 3.7+: Ensure that Python is installed. You can download it from Python's official website.
+    pip: Python package installer. It usually comes bundled with Python.
+
+b. Clone the Repository
+
+bash
+
+git clone https://github.com/yourusername/thermal-bridging-calculator.git
+cd thermal-bridging-calculator
+
+(Replace yourusername and the repository URL with your actual repository details.)
+c. Create a Virtual Environment (Recommended)
+
+Creating a virtual environment isolates project dependencies.
+
+bash
+
+python -m venv venv
+
+Activate the virtual environment:
+
+    Windows:
+
+    bash
+
+venv\Scripts\activate
+
+macOS/Linux:
+
+bash
+
+    source venv/bin/activate
+
+d. Install Dependencies
+
+Ensure you have pip updated:
+
+bash
+
+pip install --upgrade pip
+
+Install required packages:
+
+bash
+
+pip install -r requirements.txt
+
+requirements.txt should include:
+
+Flask
+matplotlib
+
+(Add any additional dependencies as needed.)
+4. Usage Guide
+a. Running the Application
+
+Start the Flask server by executing:
+
+bash
+
+python main.py
+
+By default, the application runs on http://localhost:3000/. Open this URL in your web browser to access the application.
+b. Navigating the Interface
+
+    Main Menu (index.html):
+        Presents options to access different features of the application.
+        Click on "Thermal Bridging" to navigate to the Heat Loss Calculator.
+
+    Thermal Bridging Interface (thermal_bridging.html):
+        Layer Selector: Use the - and + buttons to choose the number of wall layers (3 to 5).
+        Generate Question: Click to create a new heat loss calculation question based on the selected layers.
+        Show Solution: After generating a question, click to view the thermal resistance chart.
+        Download Chart: Download the generated chart as a PNG image.
+        Back to Main Menu: Return to the main interface.
+        Show Formulae Button: Located at the top-right corner, click to view calculation formulas in a modal displaying an image.
+
+c. Generating a Question and Viewing the Solution
+
+    Select Number of Layers:
+        Choose between 3 to 5 layers using the - and + buttons.
+        The current selection is displayed dynamically.
+
+    Generate Question:
+        Click "Generate Question".
+        A spinner indicates processing while the question is being generated.
+        The question details, including wall dimensions, temperatures, and layer information, are displayed.
+
+    Show Solution:
+        Click "Show Solution" to visualize the thermal resistance chart.
+        The chart displays the thermal resistance of each layer, including multi-layered components.
+        Annotations provide total thermal resistance, heat loss (Q), and U-value.
+
+    Download Chart:
+        After viewing the solution, click "Download Chart" to save the visualization as a PNG image.
+
+    View Formulae:
+        Click the "Σ" button at the top-right to open a modal displaying calculation formulas as an image.
+        Close the modal by clicking "Close" or the X button.
+
+5. Code Structure
+
+Understanding the code structure is vital for maintaining and extending the application. Below is a breakdown of the primary components:
+a. main.py
+
+    Purpose: Acts as the entry point of the Flask application, defining routes and handling HTTP requests.
+    Key Routes:
+        /: Renders the main menu (index.html).
+        /thermal_bridging: Renders the Thermal Bridging interface (thermal_bridging.html).
+        /thermal_bridging/generate_question: Handles POST requests to generate questions and solutions for Thermal Bridging.
+
+b. question_types/thermal_bridging.py
+
+    Purpose: Contains the core logic for generating thermal bridging questions, calculating thermal resistance, heat loss, and creating visual charts.
+    Key Functions:
+        load_json(file_name): Utility to load JSON data from the Data/ThermalBridging/ directory.
+        calculate_R_parallel(fractions, R_values): Computes combined parallel thermal resistance for mixed layers.
+        plot_thermal_bridging_calculation(...): Generates a thermal resistance chart based on wall parameters.
+        generate_thermal_bridging_question(num_layers): Creates a question dictionary with randomized parameters.
+
+c. templates/
+
+    index.html: Main landing page with navigation options.
+    thermal_bridging.html: Interface for generating and viewing thermal bridging questions and solutions.
+
+d. static/images/formula_sheet.png
+
+    Purpose: Image displaying calculation formulas, used in the modal for easy reference.
+
+e. Data/ThermalBridging/
+
+    standard_constructions.json: Defines predefined wall constructions based on the number of layers.
+    standard_thicknesses.json: Specifies standard thicknesses (in mm) for various building materials.
+    thermal_properties.json: Contains thermal conductivity (k) and resistance (R) values for materials.
+
+f. tests/test_thermal_bridging.py
+
+    Purpose: Contains unit tests to verify the correctness of thermal bridging calculations.
+    Example Test:
+
+    python
+
+    import unittest
+    from question_types.thermal_bridging import calculate_R_parallel
+
+    class TestThermalBridgingCalculations(unittest.TestCase):
+        def test_calculate_R_parallel(self):
+            fractions = [0.85, 0.15]
+            R_values = [5, 1]
+            expected_R = 1 / ((0.85 / 5) + (0.15 / 1))  # ≈ 3.125
+            result = calculate_R_parallel(fractions, R_values)
+            self.assertAlmostEqual(result, 3.125, places=3)
+
+    if __name__ == '__main__':
+        unittest.main()
+
+6. Data Management
+
+Proper management of data files ensures that the application can accurately generate questions and solutions. Here's how data is organized and utilized:
+a. standard_constructions.json
+
+Defines various wall constructions based on the number of layers (3, 4, or 5). Each construction includes:
+
+    name: Descriptive name of the wall construction.
+    layers: List of layers, each specifying:
+        material: Name of the material. For mixed layers, includes " & Insulation".
+        percentage_range: (Optional) Range for structural material percentage in mixed layers.
+        insulation: (Optional) Dictionary detailing the insulation material.
+        additional_insulation: (Optional) Dictionary for any additional insulation layers.
+
+Example:
+
+json
+
+{
+    "3": [
+        {
+            "name": "Timber Frame with Insulation and Cladding",
+            "layers": [
+                {
+                    "material": "plasterboard"
+                },
+                {
+                    "material": "Multi-layer",
+                    "percentage_range": [5, 15],
+                    "insulation": {
+                        "material": "insulation_fiberglass"
+                    }
+                },
+                {
+                    "material": "external_timber_cladding"
+                }
+            ]
+        }
+        // Additional constructions...
+    ]
+    // Layers for 4 and 5 layers...
+}
+
+b. standard_thicknesses.json
+
+Lists standard thicknesses (in millimeters) for various materials to ensure realistic wall compositions.
+
+Example:
+
+json
+
+{
+    "plasterboard": [12.5, 15],
+    "timber_frame": [100],
+    "metal_frame": [50],
+    "insulation_fiberglass": [100],
+    "rigid_foam_insulation": [50],
+    "brick_veneer": [100],
+    "cement_render": [10],
+    "external_timber_cladding": [100],
+    "air_cavity": [50]
+    // Additional materials...
+}
+
+c. thermal_properties.json
+
+Contains thermal conductivity (k) and resistance (R) values for materials, essential for accurate heat loss calculations.
+
+Example:
+
+json
+
+{
+    "k_values": {
+        "plasterboard": 0.25,
+        "timber_frame": 0.13,
+        "metal_frame": 0.15,
+        "insulation_fiberglass": 0.04,
+        "rigid_foam_insulation": 0.03,
+        "brick_veneer": 0.7,
+        "cement_render": 0.7,
+        "external_timber_cladding": 0.2,
+        "air_cavity": 0.04
+        // Additional materials...
+    },
+    "R_values": {
+        // Materials with predefined R-values
+    }
+}
+
+Note: Ensure that all material keys are consistently named (e.g., lowercase with underscores) across all JSON files to prevent mismatches during data retrieval.
+7. Troubleshooting
+
+Encountering issues is a natural part of development. Below are common problems and their solutions to help you maintain smooth operation.
+a. Combined Layer Naming Issues
+
+Problem: Combined layers (multi-layered) are displaying the sublayer name (e.g., "Metal Frame") instead of the generic "Multi-layer".
+
+Solution:
+
+    Backend Verification:
+        Ensure that in thermal_bridging.py, the material field for combined layers is set to "Multi-layer".
+        Confirm that the structural_material field accurately captures the actual sublayer name.
+
+    python
+
+# Example snippet
+converted_layer = {
+    "material": "Multi-layer",
+    "structural_material": structural_material_name,
+    // Other fields...
+}
+
+Frontend Rendering:
+
+    In thermal_bridging.html, ensure that sublayers use layer.structural_material for their names.
+
+javascript
+
+    // Example snippet
+    layers_info += `<li><strong>${layer.structural_material}:</strong> ${(layer.structural_percentage * 100).toFixed(1)}% surface area, Thermal Conductivity (k) = ${layer.k} W/mK</li>`;
+
+    Restart Server:
+        After making changes, restart the Flask server to apply updates.
+
+b. Formulae Modal Not Displaying Image
+
+Problem: The formulae modal isn't showing the formula sheet image.
+
+Solution:
+
+    Verify Image Placement:
+        Ensure that formula_sheet.png is located in static/images/.
+        Confirm the exact filename and extension.
+
+    Check Image Path in HTML:
+        In thermal_bridging.html, ensure the src attribute correctly references the image using Flask's url_for.
+
+    html
+
+    <img src="{{ url_for('static', filename='images/formula_sheet.png') }}" alt="Calculation Formulae" class="img-fluid">
+
+    Browser Console Errors:
+        Open Developer Tools (F12) and check the Console and Network tabs for any errors related to image loading.
+        Look for 404 errors indicating the image isn't found.
+
+    Clear Browser Cache:
+        Perform a hard reload (Ctrl + F5 or Cmd + Shift + R) to ensure the latest files are loaded.
+
+c. AJAX Requests Failing
+
+Problem: Clicking "Generate Question" doesn't produce a new question or shows an error.
+
+Solution:
+
+    Check Server Logs:
+        Monitor the terminal where Flask is running for any error messages or stack traces.
+        Address any issues indicated in the logs.
+
+    Inspect Browser Console:
+        Open Developer Tools and check the Console and Network tabs.
+        Verify that the AJAX POST request to /thermal_bridging/generate_question is successful (status code 200).
+        Look for any JavaScript errors that might prevent the AJAX call.
+
+    Validate JSON Data:
+        Ensure that all required fields in standard_constructions.json, standard_thicknesses.json, and thermal_properties.json are correctly formatted and free of syntax errors.
+
+    Verify Route Definitions:
+        Confirm that the /thermal_bridging/generate_question route is correctly defined in main.py and properly linked to the thermal_bridging.py functions.
+
+8. Future Enhancements
+
+To further improve the Thermal Bridging Heat Loss Calculator, consider implementing the following features:
+
+    User Authentication:
+        Allow users to create accounts, save progress, and track their performance over time.
+
+    Advanced Material Database:
+        Expand the thermal_properties.json to include a broader range of materials with varying k and R values.
+
+    Interactive Chart Customization:
+        Enable users to customize chart appearances, such as colors, labels, and units.
+
+    Multiple Formula Sheets:
+        Provide options for different sets of formulas based on user proficiency or regional standards.
+
+    Responsive Design Enhancements:
+        Further optimize the interface for various devices, ensuring usability on tablets and smartphones.
+
+    Export Options:
+        Allow users to export questions and solutions as PDFs or shareable links.
+
+    Feedback Mechanism:
+        Implement a system for users to provide feedback or report issues directly within the application.
+
+    Integration with Databases:
+        Store user-generated questions and results in a database for analytics and personalized experiences.
+
+9. Contribution Guidelines
+
+Contributing to the Thermal Bridging Heat Loss Calculator project is encouraged to enhance its features and maintain its quality. Below are the guidelines to ensure smooth collaboration.
+a. Fork the Repository
+
+    Navigate to the project repository on GitHub.
+    Click the Fork button to create a personal copy.
+
+b. Create a New Branch
+
+Create a branch for your feature or bug fix.
+
+bash
+
+git checkout -b feature/your-feature-name
+
+c. Make Changes
+
+Implement your changes following the project's coding standards and best practices.
+d. Commit Your Changes
+
+Write clear and descriptive commit messages.
+
+bash
+
+git add .
+git commit -m "Add feature: Description of your feature"
+
+e. Push to Your Fork
+
+bash
+
+git push origin feature/your-feature-name
+
+f. Open a Pull Request
+
+    Navigate to your forked repository on GitHub.
+    Click the Compare & pull request button.
+    Provide a clear description of your changes.
+    Submit the pull request for review.
+
+g. Code Review
+
+Project maintainers will review your pull request, suggest changes if necessary, and merge it upon approval.
+
+Note: Ensure that your code passes all existing unit tests and includes new tests for any new functionality.
+10. Contact Information
+
+For any questions, suggestions, or support regarding the Thermal Bridging Heat Loss Calculator, please reach out through the following channels:
+
+    Email: your.email@example.com
+    GitHub Issues: Open an Issue
+    Project Repository: GitHub Repository Link
+
+(Replace the placeholders with your actual contact information and repository links.)
