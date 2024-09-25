@@ -108,7 +108,22 @@ def plot_thermal_bridging_calculation(length, height, layers, T_inside, T_outsid
     for layer in layers_with_surfaces:
         material = layer.get('material')
         thickness = layer.get('thickness')
-        if 'R' in layer:
+        if 'insulation' in layer:
+            # Mixed layer with thermal bridging
+            insulation = layer['insulation']
+            insulation_material = insulation['material']
+            structural_percentage = layer.get('structural_percentage', 0.1)  # Default to 10% if not set
+            insulation_percentage = 1 - structural_percentage  # Remaining percentage
+            insulation_thickness = thickness
+            insulation_k = insulation['k']
+            fraction = insulation_percentage
+            R_insulation = insulation_thickness / insulation_k
+            R_structural = thickness / tb_materials_k.get(layer.get('structural_material', '').lower().replace(' ', '_'), 0.2)  # Default k=0.2 W/mK if not found
+            R_parallel = calculate_R_parallel([fraction, 1 - fraction], [R_insulation, R_structural])
+            R_values.append(R_parallel)
+            layer_names.append("Multi-layer")  # Set to "Multi-layer"
+            logging.debug(f"Layer '{material}' is a mixed layer with R_parallel = {R_parallel} m²K/W")
+        elif 'R' in layer:
             R = layer['R']
             R_values.append(R)
             layer_names.append(material)
@@ -118,39 +133,7 @@ def plot_thermal_bridging_calculation(length, height, layers, T_inside, T_outsid
             R_values.append(R)
             layer_names.append(material)
             logging.debug(f"Layer '{material}' with thickness {thickness} m and k {layer['k']} W/mK has R = {R} m²K/W")
-        elif 'insulation' in layer:
-            # Mixed layer with thermal bridging
-            insulation = layer['insulation']
-            insulation_material = insulation['material']
-            structural_percentage = layer.get('structural_percentage', 0.1)  # Default to 10% if not set
-            insulation_percentage = 1 - structural_percentage  # Remaining percentage
-            insulation_thickness = insulation['thickness']
-            insulation_k = insulation['k']
 
-            # Handle additional insulation if present
-            if 'additional_insulation' in layer:
-                additional_insulation = layer['additional_insulation']
-                additional_material = additional_insulation['material']
-                additional_percentage = additional_insulation['percentage'] / 100  # Convert to fraction
-                additional_thickness = additional_insulation['thickness']
-                additional_k = additional_insulation['k']
-
-                fractions = [structural_percentage, additional_percentage]
-                R_structural = thickness / tb_materials_k.get(layer.get('structural_material', '').lower().replace(' ', '_'), 0.2)  # Default k=0.2 W/mK if not found
-                R_additional = additional_thickness / additional_k
-                R_parallel = calculate_R_parallel(fractions, [R_structural, R_additional])
-                R_values.append(R_parallel)
-                layer_names.append("Multi-layer")  # Set to "Multi-layer"
-                logging.debug(f"Layer '{material}' is a mixed layer with R_parallel = {R_parallel} m²K/W")
-            else:
-                # Single insulation in the layer
-                fraction = insulation_percentage
-                R_insulation = insulation_thickness / insulation_k
-                R_structural = thickness / tb_materials_k.get(layer.get('structural_material', '').lower().replace(' ', '_'), 0.2)  # Default k=0.2 W/mK if not found
-                R_parallel = calculate_R_parallel([fraction, 1 - fraction], [R_insulation, R_structural])
-                R_values.append(R_parallel)
-                layer_names.append("Multi-layer")  # Set to "Multi-layer"
-                logging.debug(f"Layer '{material}' is a mixed layer with R_parallel = {R_parallel} m²K/W")
         else:
             error_msg = f"Layer '{material}' must have either 'k', 'R', or 'insulation' defined."
             logging.error(error_msg)
