@@ -78,6 +78,20 @@ def generate_heat_loss_question():
         logging.error(f"Unexpected error during wall heat loss question/solution generation: {e}")
         return jsonify({"error": "An unexpected error occurred while generating the wall heat loss question and solution."}), 500
 
+# ----------------- Psychrometry Routes -----------------
+
+@app.route('/heat_loss')
+def psychrometry_menu():
+    """
+    Renders the psychrometry question interface.
+    """
+    return render_template('psychrometry.html')
+
+@app.route('/psychrometry/generate_question', methods=['POST'])
+def generate_psychrometry_question():
+
+
+
 # ----------------- Thermal Bridging Routes -----------------
 
 @app.route('/thermal_bridging')

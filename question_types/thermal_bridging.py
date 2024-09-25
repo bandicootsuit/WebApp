@@ -121,7 +121,7 @@ def plot_thermal_bridging_calculation(length, height, layers, T_inside, T_outsid
             R_structural = thickness / tb_materials_k.get(layer.get('structural_material', '').lower().replace(' ', '_'), 0.2)  # Default k=0.2 W/mK if not found
             R_parallel = calculate_R_parallel([fraction, 1 - fraction], [R_insulation, R_structural])
             R_values.append(R_parallel)
-            layer_names.append("Multi-layer")  # Set to "Multi-layer"
+            layer_names.append("Combined-layer")  # Set to "Combined-layer"
             logging.debug(f"Layer '{material}' is a mixed layer with R_parallel = {R_parallel} m²K/W")
         elif 'R' in layer:
             R = layer['R']
@@ -277,7 +277,7 @@ def generate_thermal_bridging_question(num_layers=3):
             insulation_fraction = insulation_percentage_actual / 100
 
             # Assign a generic name for combined layers
-            combined_name = "Multi-layer"
+            combined_name = "Combined-layer"
 
             converted_layer = {
                 "material": combined_name,
