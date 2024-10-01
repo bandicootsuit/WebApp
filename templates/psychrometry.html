@@ -14,17 +14,21 @@
         }
         #chart-container {
             text-align: center;
+            margin-top: 20px;
         }
         #chart {
             max-width: 100%;
             height: auto;
-            margin-top: 20px;
             border: 1px solid #ddd;
             padding: 10px;
             background-color: #fff;
         }
         #spinner {
             display: none;
+        }
+        #download-chart, #colorblind-filter {
+            display: none; /* Hidden by default */
+            margin-top: 15px;
         }
     </style>
 </head>
@@ -49,9 +53,13 @@
             </div>
             <p>Generating chart...</p>
         </div>
-        <!-- Chart will be displayed here -->
-        <div id="chart-container">
+        <!-- Chart and Action Buttons -->
+        <div id="chart-container" style="display: none;">
             <img id="chart" src="" alt="Psychrometric Chart">
+            <div class="d-flex justify-content-center">
+                <a id="download-chart" class="btn btn-info me-2" href="#" download="psychrometric_chart.png">Download Chart</a>
+                <button id="colorblind-filter" class="btn btn-warning">Color Blind Filter</button>
+            </div>
         </div>
     </div>
     
@@ -59,15 +67,23 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         let currentPoints = {};
+        let isColorBlind = false; // Tracks current filter state
 
         $(document).ready(function(){
+            // Generate Question Button Click Handler
             $('#generate-question').click(function(){
                 // Disable buttons during request
                 $('#generate-question').prop('disabled', true);
                 $('#show-solution').prop('disabled', true);
-                $('#spinner').hide();
-                $('#chart').attr('src', '');
                 
+                // Reset solution section
+                $('#spinner').hide();
+                $('#chart-container').hide();
+                $('#chart').attr('src', '');
+                $('#download-chart').attr('href', '#').hide();
+                $('#colorblind-filter').hide();
+                isColorBlind = false; // Reset filter state
+
                 $.ajax({
                     url: '/psychrometry/generate_question',
                     method: 'GET',
@@ -101,6 +117,7 @@
                 });
             });
             
+            // Show Solution Button Click Handler
             $('#show-solution').click(function(){
                 if (!currentPoints.point1 || !currentPoints.point2) {
                     alert('Please generate a question first.');
@@ -109,7 +126,11 @@
 
                 // Show spinner and hide previous chart
                 $('#spinner').show();
+                $('#chart-container').hide();
                 $('#chart').attr('src', '');
+                $('#download-chart').attr('href', '#').hide();
+                $('#colorblind-filter').hide();
+                isColorBlind = false; // Reset filter state
 
                 $.ajax({
                     url: '/psychrometry/show_solution',
@@ -120,6 +141,9 @@
                         $('#spinner').hide();
                         if(data.chart_url){
                             $('#chart').attr('src', data.chart_url);
+                            $('#download-chart').attr('href', data.chart_url).show();
+                            $('#colorblind-filter').show();
+                            $('#chart-container').show();
                         } else if(data.error){
                             alert(data.error);
                         }
@@ -127,6 +151,51 @@
                     error: function(){
                         $('#spinner').hide();
                         alert('Error generating solution. Please try again.');
+                    }
+                });
+            });
+
+            // Color Blind Filter Button Click Handler
+            $('#colorblind-filter').click(function(){
+                if (!currentPoints.point1 || !currentPoints.point2) {
+                    alert('Please generate a question first.');
+                    return;
+                }
+
+                // Toggle the colorblind state
+                isColorBlind = !isColorBlind;
+
+                // Show spinner while generating the filtered chart
+                $('#spinner').show();
+                $('#chart-container').hide();
+                $('#chart').attr('src', '');
+                $('#download-chart').attr('href', '#').hide();
+
+                // Prepare data with colorblind flag
+                const requestData = {
+                    ...currentPoints,
+                    colorblind: isColorBlind
+                };
+
+                $.ajax({
+                    url: '/psychrometry/show_solution',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(requestData),
+                    success: function(data){
+                        $('#spinner').hide();
+                        if(data.chart_url){
+                            $('#chart').attr('src', data.chart_url);
+                            $('#download-chart').attr('href', data.chart_url).show();
+                            $('#colorblind-filter').text(isColorBlind ? 'Standard Colors' : 'Color Blind Filter');
+                            $('#chart-container').show();
+                        } else if(data.error){
+                            alert(data.error);
+                        }
+                    },
+                    error: function(){
+                        $('#spinner').hide();
+                        alert('Error generating filtered solution. Please try again.');
                     }
                 });
             });

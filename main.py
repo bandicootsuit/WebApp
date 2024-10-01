@@ -1,4 +1,4 @@
-# main.py
+#main.py
 
 from flask import Flask, render_template, request, jsonify
 import os
@@ -18,6 +18,77 @@ def main_menu():
     Renders the main menu interface.
     """
     return render_template('index.html')
+
+# ----------------- Psychrometry Routes -----------------
+
+@app.route('/psychrometry')
+def psychrometry_menu():
+    """
+    Renders the psychrometric chart question interface.
+    """
+    return render_template('psychrometry.html')
+
+@app.route('/psychrometry/generate_question', methods=['GET'])
+def generate_psychrometry_question():
+    """
+    Generates a psychrometric chart question.
+    """
+    try:
+        question = psychrometry.generate_question()
+        logging.info("Generated psychrometry question successfully.")
+        return jsonify(question)
+    except Exception as e:
+        logging.error(f"Error generating psychrometry question: {e}")
+        return jsonify({"error": "Failed to generate psychrometry question."}), 500
+
+@app.route('/psychrometry/show_solution', methods=['POST'])
+def show_psychrometry_solution():
+    """
+    Generates the solution chart for a psychrometric question.
+    Expects JSON data with 'point1', 'point2', and optional 'colorblind' (bool).
+    """
+    data = request.get_json()
+
+    if not data:
+        logging.error("No data provided in the show solution request.")
+        return jsonify({"error": "No data provided."}), 400
+
+    point1 = data.get('point1')
+    point2 = data.get('point2')
+    colorblind = data.get('colorblind', False)  # Defaults to False if not provided
+
+    if not point1 or not point2:
+        logging.error("Incomplete data provided for solution generation.")
+        return jsonify({"error": "Incomplete data provided."}), 400
+
+    try:
+        # Extract temperature and RH
+        T1 = point1.get('temperature')
+        RH1 = point1.get('relative_humidity')
+        T2 = point2.get('temperature')
+        RH2 = point2.get('relative_humidity')
+
+        # Validate inputs
+        if not all(isinstance(val, (int, float)) for val in [T1, RH1, T2, RH2]):
+            raise ValueError("All temperature and relative humidity values must be numbers.")
+
+        # Generate the chart with or without colorblind filter
+        chart_url = psychrometry.plot_psychrometric_chart(
+            point1=(T1, RH1),
+            point2=(T2, RH2),
+            colorblind=colorblind
+        )
+
+        logging.info(f"Generated psychrometric chart successfully. Colorblind: {colorblind}")
+
+        return jsonify({"chart_url": chart_url})
+
+    except ValueError as ve:
+        logging.error(f"ValueError: {ve}")
+        return jsonify({"error": str(ve)}), 400
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        return jsonify({"error": "An unexpected error occurred while generating the solution."}), 500
 
 # ----------------- Wall Heat Loss Routes -----------------
 
