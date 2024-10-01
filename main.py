@@ -1,4 +1,4 @@
-#main.py
+# main.py
 
 from flask import Flask, render_template, request, jsonify
 import os
@@ -31,7 +31,7 @@ def psychrometry_menu():
 @app.route('/psychrometry/generate_question', methods=['GET'])
 def generate_psychrometry_question():
     """
-    Generates a psychrometric chart question.
+    Generates a multi-part psychrometric chart question.
     """
     try:
         question = psychrometry.generate_question()
@@ -44,8 +44,8 @@ def generate_psychrometry_question():
 @app.route('/psychrometry/show_solution', methods=['POST'])
 def show_psychrometry_solution():
     """
-    Generates the solution chart for a psychrometric question.
-    Expects JSON data with 'point1', 'point2', and optional 'colorblind' (bool).
+    Generates the solution for a multi-part psychrometric question.
+    Expects JSON data with 'point1', 'point2', 'mass_flow', and 'Cp'.
     """
     data = request.get_json()
 
@@ -53,35 +53,34 @@ def show_psychrometry_solution():
         logging.error("No data provided in the show solution request.")
         return jsonify({"error": "No data provided."}), 400
 
-    point1 = data.get('point1')
-    point2 = data.get('point2')
-    colorblind = data.get('colorblind', False)  # Defaults to False if not provided
-
-    if not point1 or not point2:
-        logging.error("Incomplete data provided for solution generation.")
-        return jsonify({"error": "Incomplete data provided."}), 400
-
     try:
-        # Extract temperature and RH
-        T1 = point1.get('temperature')
-        RH1 = point1.get('relative_humidity')
-        T2 = point2.get('temperature')
-        RH2 = point2.get('relative_humidity')
+        # Extract data
+        point1 = data.get('point1')
+        point2 = data.get('point2')
+        mass_flow = data.get('mass_flow')
+        Cp = data.get('Cp')
+        colorblind = data.get('colorblind', False)  # Optional
 
         # Validate inputs
-        if not all(isinstance(val, (int, float)) for val in [T1, RH1, T2, RH2]):
-            raise ValueError("All temperature and relative humidity values must be numbers.")
+        if not all([point1, point2, mass_flow, Cp]):
+            logging.error("Incomplete data provided for solution generation.")
+            return jsonify({"error": "Incomplete data provided."}), 400
 
-        # Generate the chart with or without colorblind filter
-        chart_url = psychrometry.plot_psychrometric_chart(
-            point1=(T1, RH1),
-            point2=(T2, RH2),
-            colorblind=colorblind
-        )
+        # Generate the solution
+        question_data = {
+            "data": {
+                "Outside Condition": point1,
+                "Room Condition": point2,
+                "Mass flow of air": f"{mass_flow} kg/s",
+                "Cp for moist air": f"{Cp} kJ/kg-K"
+            }
+        }
 
-        logging.info(f"Generated psychrometric chart successfully. Colorblind: {colorblind}")
+        solution = psychrometry.generate_solution(question_data)
 
-        return jsonify({"chart_url": chart_url})
+        logging.info("Generated psychrometric chart solution successfully.")
+
+        return jsonify(solution)
 
     except ValueError as ve:
         logging.error(f"ValueError: {ve}")

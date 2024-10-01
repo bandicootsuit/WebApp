@@ -30,6 +30,15 @@
             display: none; /* Hidden by default */
             margin-top: 15px;
         }
+        .question-part {
+            margin-bottom: 10px;
+        }
+        .solution-part {
+            margin-bottom: 15px;
+        }
+        #answers {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body class="container py-5">
@@ -49,16 +58,22 @@
         <!-- Loading Spinner -->
         <div id="spinner" class="text-center my-4">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Generating chart...</span>
+                <span class="visually-hidden">Generating solution...</span>
             </div>
-            <p>Generating chart...</p>
+            <p>Generating solution...</p>
         </div>
-        <!-- Chart and Action Buttons -->
-        <div id="chart-container" style="display: none;">
-            <img id="chart" src="" alt="Psychrometric Chart">
-            <div class="d-flex justify-content-center">
-                <a id="download-chart" class="btn btn-info me-2" href="#" download="psychrometric_chart.png">Download Chart</a>
-                <button id="colorblind-filter" class="btn btn-warning">Color Blind Filter</button>
+        <!-- Solution and Chart -->
+        <div id="solution-container" style="display: none;">
+            <div id="chart-container">
+                <img id="chart" src="" alt="Psychrometric Chart">
+                <div class="d-flex justify-content-center mt-3">
+                    <a id="download-chart" class="btn btn-info me-2" href="#" download="psychrometric_chart.png">Download Chart</a>
+                    <button id="colorblind-filter" class="btn btn-warning">Color Blind Filter</button>
+                </div>
+            </div>
+            <h3 class="mt-4">Answers:</h3>
+            <div id="answers">
+                <!-- Answers will be inserted here -->
             </div>
         </div>
     </div>
@@ -78,7 +93,8 @@
                 
                 // Reset solution section
                 $('#spinner').hide();
-                $('#chart-container').hide();
+                $('#solution-container').hide();
+                $('#answers').html('');
                 $('#chart').attr('src', '');
                 $('#download-chart').attr('href', '#').hide();
                 $('#colorblind-filter').hide();
@@ -94,18 +110,38 @@
                             return;
                         }
 
-                        const point1 = data.points.point1;
-                        const point2 = data.points.point2;
+                        const dataSection = data.data;
+                        const questions = data.questions;
                         currentPoints = {
-                            point1: point1,
-                            point2: point2
+                            point1: data.data["Outside Condition"],
+                            point2: data.data["Room Condition"],
+                            mass_flow: data.data["Mass flow of air"].split(' ')[0],  // Extract numeric value
+                            Cp: data.data["Cp for moist air"].split(' ')[0]          // Extract numeric value
                         };
                         $('#question').html(
                             `<h5>${data.prompt}</h5>
-                             <ul>
-                                <li><strong>Point 1:</strong> Temperature = ${point1.temperature}°C, Relative Humidity = ${point1.relative_humidity}%</li>
-                                <li><strong>Point 2:</strong> Temperature = ${point2.temperature}°C, Relative Humidity = ${point2.relative_humidity}%</li>
-                             </ul>`
+                             <div class="mb-3">
+                                 <strong>DATA:</strong>
+                                 <ul>
+                                     <li><strong>Outside Condition:</strong> Temperature = ${dataSection["Outside Condition"].temperature}°C, Relative Humidity = ${dataSection["Outside Condition"].relative_humidity}%</li>
+                                     <li><strong>Room Condition:</strong> Temperature = ${dataSection["Room Condition"].temperature}°C, Relative Humidity = ${dataSection["Room Condition"].relative_humidity}%</li>
+                                     <li><strong>Mass flow of air:</strong> ${dataSection["Mass flow of air"]}</li>
+                                     <li><strong>Cp for moist air:</strong> ${dataSection["Cp for moist air"]}</li>
+                                 </ul>
+                             </div>
+                             <div class="mb-3">
+                                 <strong>Questions:</strong>
+                                 <ol type="a">
+                                     <li class="question-part">${questions.a}</li>
+                                     <li class="question-part">${questions.b}</li>
+                                     <li class="question-part">${questions.c}</li>
+                                     <li class="question-part">${questions.d}</li>
+                                     <li class="question-part">${questions.e}</li>
+                                     <li class="question-part">${questions.f}</li>
+                                     <li class="question-part">${questions.g}</li>
+                                     <li class="question-part">${questions.h}</li>
+                                 </ol>
+                             </div>`
                         );
                         $('#show-solution').prop('disabled', false); // Enable the solution button
                         $('#generate-question').prop('disabled', false); // Re-enable the generate button
@@ -124,28 +160,58 @@
                     return;
                 }
 
-                // Show spinner and hide previous chart
+                // Show spinner and hide previous solution
                 $('#spinner').show();
-                $('#chart-container').hide();
+                $('#solution-container').hide();
+                $('#answers').html('');
                 $('#chart').attr('src', '');
                 $('#download-chart').attr('href', '#').hide();
                 $('#colorblind-filter').hide();
                 isColorBlind = false; // Reset filter state
 
+                // Prepare data to send
+                const requestData = {
+                    point1: currentPoints.point1,
+                    point2: currentPoints.point2,
+                    mass_flow: currentPoints.mass_flow,
+                    Cp: currentPoints.Cp
+                };
+
                 $.ajax({
                     url: '/psychrometry/show_solution',
                     method: 'POST',
                     contentType: 'application/json',
-                    data: JSON.stringify(currentPoints),
+                    data: JSON.stringify(requestData),
                     success: function(data){
                         $('#spinner').hide();
-                        if(data.chart_url){
+                        if(data.chart_url && data.answers){
+                            // Populate answers
+                            let answersHtml = '<ol type="a">';
+                            answersHtml += `<li class="solution-part">Plot the Outside and Room Conditions on the chart. <em>(See chart below.)</em></li>`;
+                            answersHtml += `<li class="solution-part">Determine the Dew Point temperature for the Outside and Room Conditions.<br>
+                                             <strong>Outside Condition Dew Point:</strong> ${data.answers.b["Outside Condition Dew Point"]}<br>
+                                             <strong>Room Condition Dew Point:</strong> ${data.answers.b["Room Condition Dew Point"]}</li>`;
+                            answersHtml += `<li class="solution-part">Determine the Enthalpy for the Outside and Room Conditions.<br>
+                                             <strong>Outside Condition Enthalpy:</strong> ${data.answers.c["Outside Condition Enthalpy"]}<br>
+                                             <strong>Room Condition Enthalpy:</strong> ${data.answers.c["Room Condition Enthalpy"]}</li>`;
+                            answersHtml += `<li class="solution-part">Plot the Cooling and Reheat Lines. <em>(See chart below.)</em></li>`;
+                            answersHtml += `<li class="solution-part">Determine the difference in Enthalpy between the Outside and Cooling Point: ${data.answers.e}</li>`;
+                            answersHtml += `<li class="solution-part">Determine the difference in Enthalpy between the Cooling Point and Room: ${data.answers.f}</li>`;
+                            answersHtml += `<li class="solution-part">Based on the given mass flow, calculate the Cooler Load: ${data.answers.g}</li>`;
+                            answersHtml += `<li class="solution-part">Based on the given mass flow, calculate the Reheater Load: ${data.answers.h}</li>`;
+                            answersHtml += '</ol>';
+
+                            $('#answers').html(answersHtml);
+
+                            // Populate chart
                             $('#chart').attr('src', data.chart_url);
                             $('#download-chart').attr('href', data.chart_url).show();
                             $('#colorblind-filter').show();
-                            $('#chart-container').show();
+                            $('#solution-container').show();
                         } else if(data.error){
-                            alert(data.error);
+                            // Display the error message within the solution section
+                            $('#answers').html(`<div class="alert alert-danger" role="alert">${data.error}</div>`);
+                            $('#solution-container').show();
                         }
                     },
                     error: function(){
@@ -167,13 +233,17 @@
 
                 // Show spinner while generating the filtered chart
                 $('#spinner').show();
-                $('#chart-container').hide();
+                $('#solution-container').hide();
+                $('#answers').html('');
                 $('#chart').attr('src', '');
                 $('#download-chart').attr('href', '#').hide();
 
                 // Prepare data with colorblind flag
                 const requestData = {
-                    ...currentPoints,
+                    point1: currentPoints.point1,
+                    point2: currentPoints.point2,
+                    mass_flow: currentPoints.mass_flow,
+                    Cp: currentPoints.Cp,
                     colorblind: isColorBlind
                 };
 
@@ -184,13 +254,34 @@
                     data: JSON.stringify(requestData),
                     success: function(data){
                         $('#spinner').hide();
-                        if(data.chart_url){
+                        if(data.chart_url && data.answers){
+                            // Populate answers
+                            let answersHtml = '<ol type="a">';
+                            answersHtml += `<li class="solution-part">Plot the Outside and Room Conditions on the chart. <em>(See chart below.)</em></li>`;
+                            answersHtml += `<li class="solution-part">Determine the Dew Point temperature for the Outside and Room Conditions.<br>
+                                             <strong>Outside Condition Dew Point:</strong> ${data.answers.b["Outside Condition Dew Point"]}<br>
+                                             <strong>Room Condition Dew Point:</strong> ${data.answers.b["Room Condition Dew Point"]}</li>`;
+                            answersHtml += `<li class="solution-part">Determine the Enthalpy for the Outside and Room Conditions.<br>
+                                             <strong>Outside Condition Enthalpy:</strong> ${data.answers.c["Outside Condition Enthalpy"]}<br>
+                                             <strong>Room Condition Enthalpy:</strong> ${data.answers.c["Room Condition Enthalpy"]}</li>`;
+                            answersHtml += `<li class="solution-part">Plot the Cooling and Reheat Lines. <em>(See chart below.)</em></li>`;
+                            answersHtml += `<li class="solution-part">Determine the difference in Enthalpy between the Outside and Cooling Point: ${data.answers.e}</li>`;
+                            answersHtml += `<li class="solution-part">Determine the difference in Enthalpy between the Cooling Point and Room: ${data.answers.f}</li>`;
+                            answersHtml += `<li class="solution-part">Based on the given mass flow, calculate the Cooler Load: ${data.answers.g}</li>`;
+                            answersHtml += `<li class="solution-part">Based on the given mass flow, calculate the Reheater Load: ${data.answers.h}</li>`;
+                            answersHtml += '</ol>';
+
+                            $('#answers').html(answersHtml);
+
+                            // Populate chart
                             $('#chart').attr('src', data.chart_url);
                             $('#download-chart').attr('href', data.chart_url).show();
                             $('#colorblind-filter').text(isColorBlind ? 'Standard Colors' : 'Color Blind Filter');
-                            $('#chart-container').show();
+                            $('#solution-container').show();
                         } else if(data.error){
-                            alert(data.error);
+                            // Display the error message within the solution section
+                            $('#answers').html(`<div class="alert alert-danger" role="alert">${data.error}</div>`);
+                            $('#solution-container').show();
                         }
                     },
                     error: function(){

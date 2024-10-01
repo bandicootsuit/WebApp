@@ -5,11 +5,17 @@ matplotlib.use('Agg')  # Use the non-interactive Agg backend
 import matplotlib.pyplot as plt
 import numpy as np
 import psychrolib
-from psychrolib import GetHumRatioFromRelHum, GetTDryBulbFromEnthalpyAndHumRatio
+from psychrolib import (
+    GetHumRatioFromRelHum,
+    GetTDewPointFromRelHum,
+    GetMoistAirEnthalpy,
+    GetTDryBulbFromEnthalpyAndHumRatio
+)
 from scipy.optimize import brentq
 import io
 import base64
 import random
+import logging
 
 # Initialize PsychroLib to use SI units
 psychrolib.SetUnitSystem(psychrolib.SI)
@@ -196,28 +202,160 @@ def plot_psychrometric_chart(point1, point2, colorblind=False):
 
 def generate_question():
     """
-    Generates a psychrometry question involving plotting two points and drawing cooling/reheat lines.
+    Generates a multi-part psychrometry question involving plotting two conditions and performing various calculations.
     """
-    # Generate Point 1 within specified ranges
+    # Generate Outside Condition within specified ranges
     T1 = random.randint(28, 35)        # °C
     RH1 = random.randint(40, 70)       # %
 
-    # Generate Point 2 within specified ranges
+    # Generate Room Condition within specified ranges
     T2 = random.randint(16, 24)        # °C
     RH2 = random.randint(40, 60)       # %
 
+    # Additional Data
+    mass_flow = round(random.uniform(1.0, 5.0), 2)   # kg/s
+    Cp = 1.02  # kJ/kg-K (constant as per example)
+
     question = {
-        "prompt": "Plot the following two conditions and draw the cooling/reheat lines:",
-        "points": {
-            "point1": {
+        "prompt": "DATA:",
+        "data": {
+            "Outside Condition": {
                 "temperature": T1,
                 "relative_humidity": RH1
             },
-            "point2": {
+            "Room Condition": {
                 "temperature": T2,
                 "relative_humidity": RH2
-            }
+            },
+            "Mass flow of air": f"{mass_flow} kg/s",
+            "Cp for moist air": f"{Cp} kJ/kg-K"
+        },
+        "questions": {
+            "a": "Plot the Outside and Room Conditions on the chart.",
+            "b": "Determine the Dew Point temperature for the Outside and Room Conditions.",
+            "c": "Determine the Enthalpy for the Outside and Room Conditions.",
+            "d": "Plot the Cooling and Reheat Lines.",
+            "e": "Determine the difference in Enthalpy between the Outside and Cooling Point.",
+            "f": "Determine the difference in Enthalpy between the Cooling Point and Room.",
+            "g": "Based on the given mass flow, calculate the Cooler Load.",
+            "h": "Based on the given mass flow, calculate the Reheater Load."
         }
     }
 
     return question
+
+def generate_solution(question_data):
+    """
+    Generates solutions for the multi-part psychrometry question.
+    """
+    # Extract data
+    outside = question_data['data']['Outside Condition']
+    room = question_data['data']['Room Condition']
+    mass_flow_str = question_data['data']['Mass flow of air']
+    mass_flow = float(mass_flow_str.split(' ')[0])   # kg/s
+    Cp = float(question_data['data']['Cp for moist air'].split(' ')[0])          # kJ/kg-K
+
+    # Extract temperatures and RH
+    T1 = outside['temperature']
+    RH1 = outside['relative_humidity']
+    T2 = room['temperature']
+    RH2 = room['relative_humidity']
+
+    # Calculate moisture contents
+    try:
+        w1 = GetHumRatioFromRelHum(T1, RH1 / 100.0, 101325)
+        w2 = GetHumRatioFromRelHum(T2, RH2 / 100.0, 101325)
+    except Exception as e:
+        logging.error(f"Moisture content calculation failed: {e}")
+        raise ValueError(f"Moisture content calculation failed: {e}")
+
+    # Find Dew Point temperatures
+    try:
+        dew_point_outside = GetTDewPointFromRelHum(T1, RH1 / 100.0)
+        dew_point_room = GetTDewPointFromRelHum(T2, RH2 / 100.0)
+    except TypeError as te:
+        logging.error(f"TypeError in Dew Point calculation: {te}")
+        raise ValueError(f"Dew Point calculation failed: {te}")
+    except Exception as e:
+        logging.error(f"Unexpected error in Dew Point calculation: {e}")
+        raise ValueError(f"Dew Point calculation failed: {e}")
+
+    if dew_point_outside is None or dew_point_room is None:
+        logging.error("Dew Point calculation returned None.")
+        raise ValueError("Dew Point calculation failed.")
+
+    # Calculate enthalpy
+    try:
+        h1 = GetMoistAirEnthalpy(T1, w1)  # kJ/kg
+        h2 = GetMoistAirEnthalpy(T2, w2)  # kJ/kg
+    except Exception as e:
+        logging.error(f"Enthalpy calculation failed: {e}")
+        raise ValueError(f"Enthalpy calculation failed: {e}")
+
+    if h1 is None or h2 is None:
+        logging.error("Enthalpy calculation returned None.")
+        raise ValueError("Enthalpy calculation failed.")
+
+    # Calculate cooling point enthalpy (assuming cooling to saturation)
+    try:
+        T_sat = find_T_sat(w2)
+        h_sat = GetMoistAirEnthalpy(T_sat, w2)
+    except Exception as e:
+        logging.error(f"Saturation enthalpy calculation failed: {e}")
+        raise ValueError(f"Saturation enthalpy calculation failed: {e}")
+
+    if h_sat is None:
+        logging.error("Saturation enthalpy calculation returned None.")
+        raise ValueError("Saturation enthalpy calculation failed.")
+
+    # Difference in enthalpy
+    delta_h1 = h_sat - h1
+    delta_h2 = h2 - h_sat
+
+    # Cooler Load = mass_flow * Cp * delta_T_cooler
+    # delta_T_cooler = T1 - T_sat
+    delta_T_cooler = T1 - T_sat
+    cooler_load = mass_flow * Cp * delta_T_cooler  # kJ/s or kW
+
+    # Reheater Load = mass_flow * Cp * delta_T_reheater
+    # delta_T_reheater = T_sat - T2
+    delta_T_reheater = T_sat - T2
+    reheater_load = mass_flow * Cp * delta_T_reheater  # kJ/s or kW
+
+    # Ensure that cooler_load and reheater_load are not negative
+    cooler_load = max(cooler_load, 0)
+    reheater_load = max(reheater_load, 0)
+
+    # Generate the chart image
+    try:
+        chart_url = plot_psychrometric_chart(
+            point1=(T1, RH1),
+            point2=(T2, RH2),
+            colorblind=False  # Assuming standard colors; adjust as needed
+        )
+    except Exception as e:
+        logging.error(f"Chart generation failed: {e}")
+        raise ValueError(f"Chart generation failed: {e}")
+
+    # Prepare solutions
+    solutions = {
+        "a": "See chart below.",
+        "b": {
+            "Outside Condition Dew Point": f"{dew_point_outside:.2f}°C",
+            "Room Condition Dew Point": f"{dew_point_room:.2f}°C"
+        },
+        "c": {
+            "Outside Condition Enthalpy": f"{h1:.2f} kJ/kg",
+            "Room Condition Enthalpy": f"{h2:.2f} kJ/kg"
+        },
+        "d": "See chart below.",
+        "e": f"Difference in Enthalpy between Outside and Cooling Point: {delta_h1:.2f} kJ/kg",
+        "f": f"Difference in Enthalpy between Cooling Point and Room: {delta_h2:.2f} kJ/kg",
+        "g": f"Cooler Load: {cooler_load:.2f} kW",
+        "h": f"Reheater Load: {reheater_load:.2f} kW"
+    }
+
+    return {
+        "answers": solutions,
+        "chart_url": chart_url
+    }
