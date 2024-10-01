@@ -286,8 +286,8 @@ def generate_solution(question_data, colorblind=False):
     
     # Calculate enthalpy
     try:
-        h1 = GetMoistAirEnthalpy(T1, w1)  # kJ/kg
-        h2 = GetMoistAirEnthalpy(T2, w2)  # kJ/kg
+        h1 = GetMoistAirEnthalpy(T1, w1)/1000  # kJ/kg
+        h2 = GetMoistAirEnthalpy(T2, w2)/1000   # kJ/kg
     except Exception as e:
         logging.error(f"Enthalpy calculation failed: {e}")
         raise ValueError(f"Enthalpy calculation failed: {e}")
