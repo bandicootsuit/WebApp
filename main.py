@@ -45,7 +45,7 @@ def generate_psychrometry_question():
 def show_psychrometry_solution():
     """
     Generates the solution for a multi-part psychrometric question.
-    Expects JSON data with 'point1', 'point2', 'mass_flow', and 'Cp'.
+    Expects JSON data with 'point1', 'point2', 'mass_flow', 'Cp', and 'colorblind' (optional).
     """
     data = request.get_json()
 
@@ -54,29 +54,31 @@ def show_psychrometry_solution():
         return jsonify({"error": "No data provided."}), 400
 
     try:
-        # Extract data
-        point1 = data.get('point1')
-        point2 = data.get('point2')
-        mass_flow = data.get('mass_flow')
-        Cp = data.get('Cp')
-        colorblind = data.get('colorblind', False)  # Optional
-
-        # Validate inputs
-        if not all([point1, point2, mass_flow, Cp]):
-            logging.error("Incomplete data provided for solution generation.")
-            return jsonify({"error": "Incomplete data provided."}), 400
-
-        # Generate the solution
+        # Extract question data
         question_data = {
             "data": {
-                "Outside Condition": point1,
-                "Room Condition": point2,
-                "Mass flow of air": f"{mass_flow} kg/s",
-                "Cp for moist air": f"{Cp} kJ/kg-K"
+                "Outside Condition": data.get('point1'),
+                "Room Condition": data.get('point2'),
+                "Mass flow of air": data.get('mass_flow'),
+                "Cp for moist air": data.get('Cp')
+            },
+            "questions": {
+                "a": "Plot the Outside and Room Conditions on the chart.",
+                "b": "Determine the Dew Point temperature for the Outside and Room Conditions.",
+                "c": "Determine the Enthalpy for the Outside and Room Conditions.",
+                "d": "Plot the Cooling and Reheat Lines.",
+                "e": "Determine the difference in Enthalpy between the Outside and Cooling Point.",
+                "f": "Determine the difference in Enthalpy between the Cooling Point and Room.",
+                "g": "Based on the given mass flow, calculate the Cooler Load.",
+                "h": "Based on the given mass flow, calculate the Reheater Load."
             }
         }
 
-        solution = psychrometry.generate_solution(question_data)
+        # Extract colorblind flag
+        colorblind = data.get('colorblind', False)
+
+        # Generate the solution
+        solution = psychrometry.generate_solution(question_data, colorblind=colorblind)
 
         logging.info("Generated psychrometric chart solution successfully.")
 
@@ -88,6 +90,7 @@ def show_psychrometry_solution():
     except Exception as e:
         logging.error(f"Unexpected error: {e}")
         return jsonify({"error": "An unexpected error occurred while generating the solution."}), 500
+
 
 # ----------------- Wall Heat Loss Routes -----------------
 

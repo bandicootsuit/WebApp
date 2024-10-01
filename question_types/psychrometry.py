@@ -244,7 +244,7 @@ def generate_question():
 
     return question
 
-def generate_solution(question_data):
+def generate_solution(question_data, colorblind=False):
     """
     Generates solutions for the multi-part psychrometry question.
     """
@@ -283,7 +283,7 @@ def generate_solution(question_data):
     if dew_point_outside is None or dew_point_room is None:
         logging.error("Dew Point calculation returned None.")
         raise ValueError("Dew Point calculation failed.")
-
+    
     # Calculate enthalpy
     try:
         h1 = GetMoistAirEnthalpy(T1, w1)  # kJ/kg
@@ -319,19 +319,19 @@ def generate_solution(question_data):
 
     # Reheater Load = mass_flow * Cp * delta_T_reheater
     # delta_T_reheater = T_sat - T2
-    delta_T_reheater = T_sat - T2
+    delta_T_reheater =  T2 - T_sat 
     reheater_load = mass_flow * Cp * delta_T_reheater  # kJ/s or kW
 
     # Ensure that cooler_load and reheater_load are not negative
     cooler_load = max(cooler_load, 0)
     reheater_load = max(reheater_load, 0)
 
-    # Generate the chart image
+    # Generate the chart image with the appropriate color scheme
     try:
         chart_url = plot_psychrometric_chart(
             point1=(T1, RH1),
             point2=(T2, RH2),
-            colorblind=False  # Assuming standard colors; adjust as needed
+            colorblind=colorblind  # Pass the colorblind flag
         )
     except Exception as e:
         logging.error(f"Chart generation failed: {e}")
