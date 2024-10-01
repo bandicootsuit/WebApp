@@ -299,7 +299,7 @@ def generate_solution(question_data, colorblind=False):
     # Calculate cooling point enthalpy (assuming cooling to saturation)
     try:
         T_sat = find_T_sat(w2)
-        h_sat = GetMoistAirEnthalpy(T_sat, w2)
+        h_sat = GetMoistAirEnthalpy(T_sat, w2)/1000
     except Exception as e:
         logging.error(f"Saturation enthalpy calculation failed: {e}")
         raise ValueError(f"Saturation enthalpy calculation failed: {e}")
